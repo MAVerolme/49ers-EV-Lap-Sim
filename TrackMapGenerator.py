@@ -1,3 +1,22 @@
+#   UNC Charlotte 49ers Track Map Generator
+#   Created by : Matt Verolme
+#   Last updated : 8/7/2026
+
+#   Description :
+#
+#   Reads a MoTeC CSV export that contains Latitude and Longitude data.
+#    
+#   Converts GPS coordinates to X and Y coordinates in feet, centered around starting point
+#
+#   Fits a spline to the layout of the track. This helps eliminate noise
+#
+#   Generates evenly spaced points covering entire track
+#
+#   Determines cumulative distance and turn radius at each point.
+#
+#   Creates and saves CSV file that can be input into LapSim.py
+
+
 #---------- Import Statements ----------
 
 import csv
