@@ -9,7 +9,7 @@
 #   Opens up GUI that allows several key car parameters to be edited.
 #
 #   Pressing 'Calculate' in the interface displays the projected lap time for the track provided
-#   as well as projected Skid pad and Acceleration event times
+#   as well as projected Skid pad and Acceleration event times.
 
 #---------- Import Statements ----------
 
@@ -104,7 +104,7 @@ class Car:
     def __init__(self, w, cl, cd, fa, tw, wr, tq, gr):
         self.weight = w
         self.mass = w / g
-        self.c_lift = -1 * cl # Changing from standard sign convention
+        self.c_lift = -1 * cl # Change from standard sign convention
         self.c_drag = cd
         self.frontal_area = fa
         self.tw = (tw + 6) * in_to_ft
@@ -254,42 +254,61 @@ class Car:
 
         extended_v_accel = extended_v[n:]   # Discards first lap of data, keeps only second
 
-        # Backwards decel pass
         extended_v_decel = extended_v_max[:]
+        
+        # Backwards decel pass; determines max velocity at each point based on decel and max velocity at point after
         for i in range(2 * n - 2, -1, -1):
-            ds = extended_distances[i + 1] - extended_distances[i]
-            v_next = extended_v_decel[i + 1]
+ 
+            ds = extended_distances[i + 1] - extended_distances[i]    # Distance covered between each point
+            v_next = extended_v_decel[i + 1]    # Gets velocity at following point
             r = extended_radii[i]
-            fz_tire = (self.weight + self.downforce(v_next)) / 4  # Total Fz per tire
-            mu = self.mu_y(fz_tire)
+            
+            fz_tire = (self.weight + self.downforce(v_next)) / 4    
+            mu = self.mu_y(fz_tire)    
             f_total = mu * (self.weight + self.downforce(v_next))
+            
             f_lateral = self.mass * v_next ** 2 / r
+
+            # Maximum braking force based on friction force available
             f_brake_max = math.sqrt(max(0.0, f_total ** 2 - f_lateral ** 2))
+
+            # Deceleration from braking and drag
             a_decel = (self.drag(v_next) + f_brake_max) / self.mass
+
+            # Finds new velocity using V^2 = V_0^2 + 2ax
             v_new = math.sqrt(v_next ** 2 + 2 * a_decel * ds)
+
+            # Compares velocity determined by braking to pure cornering limit, keeps lesser value
             extended_v_decel[i] = min(extended_v_decel[i], v_new)
+
+        # Discards second lap of data
         v_decel = extended_v_decel[:n]
+
+        # Returns lowest velocity from cornering, accel, and decel calculations
         return [min(v_max[i], extended_v_accel[i], v_decel[i]) for i in range(n)]
 
     def lap_time(self, rows):
 
-        t = 0.0
+        t = 0.0    # Starting time
         n = len(rows)
-        v_actual = self.velocity_profile(rows)
+        v_actual = self.velocity_profile(rows)    # Gets velocity at each point
 
-        distances = []
+        distances = []    # List of cumulative distance at each point
         for row in rows:
             distances.append(row[1])
 
-        row_spacing = distances[1] - distances[0]
-        lap_length = distances[-1] + row_spacing
-        distances_loop = distances + [lap_length]
-        v_loop = v_actual + [v_actual[0]]
-
+        row_spacing = distances[1] - distances[0]    # Distance step between rows
+        lap_length = distances[-1] + row_spacing     # Total lap length
+        distances_loop = distances + [lap_length]    # Adds distance of interval connecting last point to first point to close the loop
+        
+        # Adds velocity connecting last point to first. Sets velocity at end of lap to velocity at start of lap
+        v_loop = v_actual + [v_actual[0]]     
+        
         for i in range(1, n + 1):
-            ds = distances_loop[i] - distances_loop[i - 1]
-            v_avg = (v_loop[i] + v_loop[i - 1]) / 2
-            t += ds / v_avg
+            
+            ds = distances_loop[i] - distances_loop[i - 1]    # Distance covered between two points
+            v_avg = (v_loop[i] + v_loop[i - 1]) / 2           # Average velocity over interval between consecutive points
+            t += ds / v_avg                                   # Cumulative lap time over each segment
 
         lap_count = 72178.5 / lap_length    # Estimates number of laps needed to complete full endurance distance (22km)
         total_time = t * lap_count          # Scales single lap time over entire endurance distance
@@ -297,23 +316,28 @@ class Car:
         return t, total_time
 
 
+#---------- GUI Setup ----------
 
 class LapSimApp(tk.Tk):
+
+    # Initializing class
     def __init__(self, master, track):
+        
         self.master = master
         self.track = track
         self.master.title("Lap Sim")
-        self.master.geometry("800x350")
-        self.master.configure(bg='#005035')
+        self.master.geometry("800x350")        # GUI window size (width x height)
+        self.master.configure(bg='#005035')    # GUI background color (Charlotte Green)
 
-        self.param_vals = {}
-        self.event_times = {}
-        #self.updated_params = tk.StringVar()
-
+        self.param_vals = {}    # Dictionary containing paramater names and their values
+        self.event_times = {}   # Dictionary containing event names and times
+        
         self.ui_style()
         self.widgets_layout()
 
+    # Defining appearence of each widget type
     def ui_style(self):
+        
         style = ttk.Style(self.master)
         style.theme_use("classic")
         style.configure('TFrame', background='#005035')
@@ -323,6 +347,7 @@ class LapSimApp(tk.Tk):
         style.configure('TButton', background='#F1E6B2', foreground='#005035', font=('Helvetica', 12, ' bold'))
         style.configure('TEntry', background='#FFFFFF', font=('Helvetica', 14))
 
+    # Creating widgets
     def widgets_layout(self):
 
 #---------- Parameter Frame ----------
@@ -354,6 +379,10 @@ class LapSimApp(tk.Tk):
         ttk.Entry(params_frame, textvariable=self.fa_var, style='TEntry').grid(row=4, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
         self.param_vals['frontal_area'] = self.fa_var
 
+''' If you want to add any other parameters to the GUI, uncomment the blocks below.
+    You will also have to change the row value and possibly the window size.
+    The parameter must also be added back to the param dictionary below. '''
+        
         # ttk.Label(params_frame, text='Track Width (in)', style='TLabel').grid(row=6, column=0, sticky='w', padx=5, pady=10)
         # self.tw_var = tk.StringVar(value=str(track_width))
         # ttk.Entry(params_frame, textvariable=self.tw_var, style='TEntry').grid(row=6, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
@@ -408,6 +437,7 @@ class LapSimApp(tk.Tk):
 
     def update_params(self):
 
+        # Dictionary containing key : Parameter Name
         params = {'weight' : 'Weight',
                   'c_lift' : 'Lift Coefficient',
                   'c_drag' : 'Drag Coefficient',
@@ -421,24 +451,37 @@ class LapSimApp(tk.Tk):
 
         values = {}
 
+        # Iterates through each parameter value from the entry boxes 
         for key, var in self.param_vals.items():
+
+            # Reads current value of entry widget
             entry = var.get()
+
+            # Tries to convert entry value from StringVar to a float
             try:
                 values[key] = float(entry)
+
+            # If an entry does not contain a number, an error message is given
             except ValueError:
                 raise ValueError(f'{params[key]} must be a number. Got {entry}')
 
-        return values
+        return values    # Returns updated parameter values
 
+    # Connected to compute button in GUI. Updates results with new parameters when called
     def compute(self):
 
+        # Creates dictionary containing parameter names and updated values
         up = self.update_params()
+
+        # Builds new car object using updated parameter values
         car = Car( up['weight'], up['c_lift'], up['c_drag'], up['frontal_area'], track_width, wheel_radius, torque, gear_ratio)
 
+        # Calculate event times using new parameters
         endurance_lap, endurance_total = car.lap_time(self.track)
         skidpad = car.cornering_time(skidpad_radius, skidpad_angle)
         accel = car.straight_time(0, -1, accel_distance)
 
+        # Changes text value of result widgets to display updated times
         self.event_times['endurance_lap'].set(f'{endurance_lap:.3f} s')
         self.event_times['endurance_total'].set(seconds_to_ms(endurance_total))
         self.event_times['skidpad'].set(f'{skidpad:.3f} s')
