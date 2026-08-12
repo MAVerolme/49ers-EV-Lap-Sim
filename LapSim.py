@@ -24,7 +24,7 @@ from math import pi
 
 weight = 580                # Car weight, lbs
 track_width = 49.5          # Trackwidth, inches
-c_lift = 0.264              # Coefficient of lift
+c_lift = -0.264              # Coefficient of lift
 c_drag = 0.585              # Coefficient of drag
 frontal_area = 7.9          # Frontal area, ft^2
 torque = 112                # Motor torque, N * m
