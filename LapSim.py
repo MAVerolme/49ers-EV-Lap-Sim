@@ -114,8 +114,8 @@ class Car:
 
         # Tire coefficients/parameters for Hoosier 16x6-7 at 12 psi:
 
-        self.pdy1 = 2.324576531     # Lateral friction Muy at nominal load (Fz0)
-        self.pdy2 = -0.66095205     # Variation of friction Muy with load
+        self.pdy1 = 2.41491         # Lateral friction Muy at nominal load (Fz0)
+        self.pdy2 = -0.09626        # Variation of friction Muy with load
         self.fz0 = 150              # Nominal tire load, lbf
         self.scaling_factor = 0.6   # Muy scaling factor
 
