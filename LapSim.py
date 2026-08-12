@@ -326,7 +326,7 @@ class LapSimApp(tk.Tk):
         self.master = master
         self.track = track
         self.master.title("Lap Sim")
-        self.master.geometry("800x350")        # GUI window size (width x height)
+        self.master.geometry("800x550")        # GUI window size (width x height)
         self.master.configure(bg='#005035')    # GUI background color (Charlotte Green)
 
         self.param_vals = {}    # Dictionary containing paramater names and their values
