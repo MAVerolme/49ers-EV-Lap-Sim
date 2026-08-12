@@ -36,6 +36,8 @@ Download the PyCharm installer, and open the downloaded file. Navigate through t
 
 After the installation is complete, press finish. 
 
+For a more in depth PyCharm setup guide, click [here](https://www.jetbrains.com/help/pycharm/quick-start-guide.html).
+
 From here, I recommend making a project folder. Click 'File' in the top left, then 'New Project', then 'Create'. 
 
 Download TrackMapGenerator.py and LapSim.py and place them in the newly created folder.
