@@ -25,7 +25,7 @@ This will take you to another page, where you can select your operating system.
 After downloading Python, you will need to download an Integrated Development Environment (IDE).
 There are many options for this such as PyCharm, Spyder, Visual Studio, Jupyter, etc.
 
-For this guide I will be utilizing PyCharm, which can be downloaded [here](jetbrains.com/pycharm/download/).
+For this guide I will be utilizing PyCharm, which can be downloaded [here](https://www.jetbrains.com/pycharm/download/).
 
 Download the PyCharm installer, and open the downloaded file. Navigate through the setup menu, and begin the PyCharm installation.
 
