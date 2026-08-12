@@ -114,8 +114,8 @@ class Car:
 
         # Tire coefficients/parameters for Hoosier 16x6-7 at 12 psi:
 
-        self.pdy1 = 2.41491         # Lateral friction Muy at nominal load (Fz0)
-        self.pdy2 = -0.09626        # Variation of friction Muy with load
+        self.pdy1 = 2.324576531     # Lateral friction Muy at nominal load (Fz0)
+        self.pdy2 = -0.66095205     # Variation of friction Muy with load
         self.fz0 = 150              # Nominal tire load, lbf
         self.scaling_factor = 0.6   # Muy scaling factor
 
@@ -378,30 +378,26 @@ class LapSimApp(tk.Tk):
         self.fa_var = tk.StringVar(value=str(frontal_area))
         ttk.Entry(params_frame, textvariable=self.fa_var, style='TEntry').grid(row=4, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
         self.param_vals['frontal_area'] = self.fa_var
-
-''' If you want to add any other parameters to the GUI, uncomment the blocks below.
-    You will also have to change the row value and possibly the window size.
-    The parameter must also be added back to the param dictionary below. '''
         
-        # ttk.Label(params_frame, text='Track Width (in)', style='TLabel').grid(row=6, column=0, sticky='w', padx=5, pady=10)
-        # self.tw_var = tk.StringVar(value=str(track_width))
-        # ttk.Entry(params_frame, textvariable=self.tw_var, style='TEntry').grid(row=6, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
-        # self.param_vals['track_width'] = self.tw_var
-        #
-        # ttk.Label(params_frame, text='Wheel Radius (in)', style='TLabel').grid(row=7, column=0, sticky='w', padx=5, pady=10)
-        # self.rwheel_var = tk.StringVar(value=str(wheel_radius))
-        # ttk.Entry(params_frame, textvariable=self.rwheel_var, style='TEntry').grid(row=7, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
-        # self.param_vals['wheel_radius'] = self.rwheel_var
-        #
-        # ttk.Label(params_frame, text='Torque (Nm)', style='TLabel').grid(row=8, column=0, sticky='w', padx=5, pady=10)
-        # self.torque_var = tk.StringVar(value=str(torque))
-        # ttk.Entry(params_frame, textvariable=self.torque_var, style='TEntry').grid(row=8, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
-        # self.param_vals['torque'] = self.torque_var
-        #
-        # ttk.Label(params_frame, text='Gear Ratio', style='TLabel').grid(row=9, column=0, sticky='w', padx=5, pady=10)
-        # self.gr_var = tk.StringVar(value=str(gear_ratio))
-        # ttk.Entry(params_frame, textvariable=self.gr_var, style='TEntry').grid(row=9, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
-        # self.param_vals['gear_ratio'] = self.gr_var
+        ttk.Label(params_frame, text='Track Width (in)', style='TLabel').grid(row=6, column=0, sticky='w', padx=5, pady=10)
+        self.tw_var = tk.StringVar(value=str(track_width))
+        ttk.Entry(params_frame, textvariable=self.tw_var, style='TEntry').grid(row=6, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
+        self.param_vals['track_width'] = self.tw_var
+        
+        ttk.Label(params_frame, text='Wheel Radius (in)', style='TLabel').grid(row=7, column=0, sticky='w', padx=5, pady=10)
+        self.rwheel_var = tk.StringVar(value=str(wheel_radius))
+        ttk.Entry(params_frame, textvariable=self.rwheel_var, style='TEntry').grid(row=7, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
+        self.param_vals['wheel_radius'] = self.rwheel_var
+        
+        ttk.Label(params_frame, text='Torque (Nm)', style='TLabel').grid(row=8, column=0, sticky='w', padx=5, pady=10)
+        self.torque_var = tk.StringVar(value=str(torque))
+        ttk.Entry(params_frame, textvariable=self.torque_var, style='TEntry').grid(row=8, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
+        self.param_vals['torque'] = self.torque_var
+        
+        ttk.Label(params_frame, text='Gear Ratio', style='TLabel').grid(row=9, column=0, sticky='w', padx=5, pady=10)
+        self.gr_var = tk.StringVar(value=str(gear_ratio))
+        ttk.Entry(params_frame, textvariable=self.gr_var, style='TEntry').grid(row=9, column=1, sticky='e', padx=(0,entry_space_right), pady=10)
+        self.param_vals['gear_ratio'] = self.gr_var
 
         ttk.Button(params_frame, text='Compute', style='TButton', command=self.compute).grid(row=10, column=0, sticky='e', columnspan=2, padx=(0,250), pady=10)
 
@@ -441,12 +437,12 @@ class LapSimApp(tk.Tk):
         params = {'weight' : 'Weight',
                   'c_lift' : 'Lift Coefficient',
                   'c_drag' : 'Drag Coefficient',
-                  'frontal_area' : 'Frontal Area'
-                  # ,'mu_s' : 'Friction Coefficient',
-                  # 'track_width' : 'Track Width',
-                  # 'wheel_radius' : 'Wheel Radius',
-                  # 'torque' : 'Torque',
-                  # 'gear_ratio' : 'Gear Ratio'
+                  'frontal_area' : 'Frontal Area',
+                  'mu_s' : 'Friction Coefficient',
+                  'track_width' : 'Track Width',
+                  'wheel_radius' : 'Wheel Radius',
+                  'torque' : 'Torque',
+                  'gear_ratio' : 'Gear Ratio'
                   }
 
         values = {}
@@ -474,7 +470,7 @@ class LapSimApp(tk.Tk):
         up = self.update_params()
 
         # Builds new car object using updated parameter values
-        car = Car( up['weight'], up['c_lift'], up['c_drag'], up['frontal_area'], track_width, wheel_radius, torque, gear_ratio)
+        car = Car( up['weight'], up['c_lift'], up['c_drag'], up['frontal_area'], up['track_width'], up['wheel_radius'], up['torque'], up['gear_ratio'])
 
         # Calculate event times using new parameters
         endurance_lap, endurance_total = car.lap_time(self.track)
