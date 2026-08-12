@@ -114,12 +114,16 @@ class Car:
 
         # Tire coefficients/parameters for Hoosier 16x6-7 at 12 psi:
 
-        self.pdy1 = 2.65159         # Lateral friction Muy at nominal load (Fz0)
-        self.pdy2 = -0.115147       # Variation of friction Muy with load
-        self.fz0 = 146.126          # Nominal tire load, lbf
-        self.scaling_factor = 0.6   # Muy scaling factor
+        self.pdy1 = 2.65159             # Lateral friction Muy at nominal load (Fz0)
+        self.pdy2 = -0.115147           # Variation of friction Muy with load
+        self.pdy3 = -9.99128            # Variation of friction Muy with camber squared
+        self.fz0 = 146.126              # Nominal tire load, lbf
 
-        self.dt = 0.01              # Integration time step, s
+        self.scaling_factor = 0.6       # Muy scaling factor
+
+        self.camber = math.radians(2)   # Camber angle
+
+        self.dt = 0.01                  # Integration time step, s
 
 
     # Downforce in lbf based on velocity
@@ -133,7 +137,7 @@ class Car:
     # Load dependant lateral friction coefficient
     def mu_y(self, fz_tire):
         dfz = (fz_tire - self.fz0) / self.fz0
-        return (self.pdy1 + self.pdy2 * dfz) * self.scaling_factor
+        return (self.pdy1 + self.pdy2 * dfz) * (1 + self.pdy3 * self.camber ** 2) * self.scaling_factor
 
     # Finds maximum theoretical cornering velocity based on available grip and corner radius
     def cornering_speed(self, r):
