@@ -1,6 +1,11 @@
 # **49ers-EV-Lap-Sim**
 **Point mass simulation tool designed for FSAE car optimization.**
+
 Created by Matt Verolme for use by the UNC Charlotte FSAE EV Team
+
+There are many improvements that can be made to this tool, and I hope to continue working on this project.
+
+If you have any questions, comments, critiques, or suggestions, I would love to hear them. The best way to reach me is via discord @ mattv33
 
 ## Description:
 ### *TrackMapGenerator.py:*
