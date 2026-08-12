@@ -1,6 +1,6 @@
 #   UNC Charlotte 49ers EV Lap Sim program
 #   Created by : Matt Verolme
-#   Last updated : 8/6/2026
+#   Last updated : 8/11/2026
 
 #   Description :
 #
