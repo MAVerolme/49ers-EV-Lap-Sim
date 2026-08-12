@@ -33,7 +33,11 @@ import matplotlib.pyplot as plt
 
 # ---------- Variables ----------
 
-r_earth = 20902896.96  # radius of earth at UNCC, ft
+r_earth = 20902896.96  # radius of earth, ft
+
+# Use 20902896.96 for UNCC
+# Use 20895291.995 for MIS
+
 smoothing = 500 # Spline smoothing strength; increase if output is longer than expected or looks rough
 spacing = 0.5 # Spacing between points in output, ft
 
@@ -137,6 +141,7 @@ def plot_track(spl, u_fine, title):
     plt.plot(x_plot, y_plot, '-', linewidth=1.5)
     plt.xlabel('X (ft)')
     plt.ylabel('Y (ft)')
+    plt.gca().set_aspect('equal')
     plt.title(title)
     plt.grid(True)
     plt.show()
