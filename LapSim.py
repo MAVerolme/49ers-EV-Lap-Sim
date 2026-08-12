@@ -128,7 +128,7 @@ class Car:
 
     # Drag in lbf based on velocity
     def drag(self, v):
-        return abs(0.5 * self.c_drag * rho * self.frontal_area * v ** 2)
+        return 0.5 * self.c_drag * rho * self.frontal_area * v ** 2
 
     # Load dependant lateral friction coefficient
     def mu_y(self, fz_tire):
