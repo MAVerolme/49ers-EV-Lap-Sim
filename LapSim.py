@@ -29,7 +29,7 @@ c_drag = 0.585              # Coefficient of drag
 frontal_area = 7.9          # Frontal area, ft^2
 torque = 112                # Motor torque, N * m
 gear_ratio = 3.45           # Gear ratio
-wheel_radius = 9            # Wheel radius, in
+wheel_radius = 8            # Wheel radius, in
 
 g = 32.17405                # Gravity, ft/s^2
 rho = 0.002282              # Air Density, slug/ft^3
@@ -114,10 +114,10 @@ class Car:
 
         # Tire coefficients/parameters for Hoosier 16x6-7 at 12 psi:
 
-        self.pdy1 = 2.65159             # Lateral friction Muy at nominal load (Fz0)
-        self.pdy2 = -0.115147           # Variation of friction Muy with load
-        self.pdy3 = -9.99128            # Variation of friction Muy with camber squared
-        self.fz0 = 146.126              # Nominal tire load, lbf
+        self.pdy1 = 2.41491             # Lateral friction Muy at nominal load (Fz0)
+        self.pdy2 = -0.09626           # Variation of friction Muy with load
+        self.pdy3 = -11.5817            # Variation of friction Muy with camber squared
+        self.fz0 = 149.948              # Nominal tire load, lbf
 
         self.scaling_factor = 0.6       # Muy scaling factor
 
