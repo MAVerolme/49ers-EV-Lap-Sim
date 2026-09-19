@@ -1,6 +1,6 @@
 #   UNC Charlotte 49ers EV Lap Sim program
 #   Created by : Matt Verolme
-#   Last updated : 8/11/2026
+#   Last updated : 9/19/2026
 
 #   Description :
 #
@@ -22,7 +22,7 @@ from math import pi
 
 #---------- Initialize Parameters ----------
 
-weight = 580                # Car weight, lbs
+weight = 617                # Car weight, lbs
 track_width = 49.5          # Trackwidth, inches
 c_lift = 0.264              # Coefficient of lift
 c_drag = 0.585              # Coefficient of drag
@@ -40,7 +40,7 @@ skidpad_radius = 30         # Skidpad Radius, ft
 skidpad_angle = 360         # Skidpad turn angle, degrees
 accel_distance = 246.06     # Acceleration distance, ft
 
-straight_threshold = 100    # Threshold radius to determine a straight, ft
+straight_threshold = 150    # Threshold radius to determine a straight, ft
 
 
 #---------- Creating file selection interface ----------
@@ -117,7 +117,12 @@ class Car:
         self.pdy1 = 2.41491             # Lateral friction Muy at nominal load (Fz0)
         self.pdy2 = -0.09626           # Variation of friction Muy with load
         self.pdy3 = -11.5817            # Variation of friction Muy with camber squared
-        self.fz0 = 149.948              # Nominal tire load, lbf
+        self.fz0_y = 149.948              # Nominal tire load, lbf
+
+        self.pdx1 = 2.39316             # Longitudinal friction Mux at nominal load (Fz0)
+        self.pdx2 = -0.0373876          # Variation of friction Mux with load
+        self.pdx3 = 15.5786             # Variation of friction Mux with camber squared
+        self.fz0_x = 146.126            # Nominal tire load from long data, lbf
 
         self.scaling_factor = 0.6       # Muy scaling factor
 
@@ -136,8 +141,13 @@ class Car:
 
     # Load dependant lateral friction coefficient
     def mu_y(self, fz_tire):
-        dfz = (fz_tire - self.fz0) / self.fz0
+        dfz = (fz_tire - self.fz0_y) / self.fz0_y
         return (self.pdy1 + self.pdy2 * dfz) * (1 + self.pdy3 * self.camber ** 2) * self.scaling_factor
+
+    # Load dependant longitudinal friction coefficient
+    def mu_x(self, fz_tire):
+        dfz = (fz_tire - self.fz0_x) / self.fz0_x
+        return (self.pdx1 + self.pdx2 * dfz) * (1 + self.pdx3 * self.camber ** 2) * self.scaling_factor
 
     # Finds maximum theoretical cornering velocity based on available grip and corner radius
     def cornering_speed(self, r):
@@ -179,7 +189,11 @@ class Car:
         v = v_0
 
         while d < length:
-            a = ((self.torque * gear_ratio / self.wheel_radius) - self.drag(v)) / self.mass
+            fz_tire = (self.weight + self.downforce(v)) / 4
+            f_long_max = self.mu_x(fz_tire) * (self.weight + self.downforce(v))
+            f_drive = min((self.torque * self.gear_ratio / self.wheel_radius), f_long_max)
+            
+            a = (f_drive - self.drag(v)) / self.mass
             v += a * self.dt
             d += v * self.dt
             t += self.dt
@@ -191,7 +205,7 @@ class Car:
 
     # Determines velocity limit at each interval across an entire lap
     # This is the main function used for estimating lap times for a given track
-    def velocity_profile(self, rows):
+        def velocity_profile(self, rows):
 
         n = len(rows)
         row_spacing = rows[1][1] - rows[0][1]   # Feet covered between each interval in track file
@@ -233,16 +247,18 @@ class Car:
             r = extended_radii[i]
 
             fz_tire = (self.weight + self.downforce(v_prev)) / 4    # Total Fz per tire
-            mu = self.mu_y(fz_tire)    # Load dependent friction coefficient
 
-            # Determines total friction force available from all tires; this is the radius of the friction circle
-            f_total = mu * (self.weight + self.downforce(v_prev))
+            mu_long = self.mu_x(fz_tire)    # Load dependent longitudinal friction coefficient
+            mu_lat = self.mu_y(fz_tire)     # Load dependent lateral friction coefficient
 
-            # Lateral force required to take corner at previous velocity
-            f_lateral = (self.mass * v_prev ** 2) / abs(r)
 
-            # Remaining friction force available for longitudinal force
-            f_long_max = math.sqrt(max(0, (f_total ** 2) - (f_lateral ** 2))) # 'max' function guards against negative number in sqrt
+            f_lateral = (self.mass * v_prev ** 2) / abs(r)                      # Lateral force required to take corner at previous velocity
+            f_lateral_max = mu_lat * (self.weight + self.downforce(v_prev))     # Maximum lateral force available
+
+            # Maximum longitudinal force from friction ellipse
+            f_long_max = ((mu_long * (self.weight + self.downforce(v_prev))) *
+                          max(0, (math.sqrt(1 - min(1, (f_lateral/f_lateral_max)) ** 2))))
+
 
             # Finds force limit of powertrain and traction. Smaller value is actual driving force limit
             f_drive = min((self.torque * self.gear_ratio / self.wheel_radius), f_long_max)
@@ -267,14 +283,16 @@ class Car:
             v_next = extended_v_decel[i + 1]    # Gets velocity at following point
             r = extended_radii[i]
             
-            fz_tire = (self.weight + self.downforce(v_next)) / 4    
-            mu = self.mu_y(fz_tire)    
-            f_total = mu * (self.weight + self.downforce(v_next))
-            
-            f_lateral = self.mass * v_next ** 2 / r
+            fz_tire = (self.weight + self.downforce(v_next)) / 4
+            mu_long = self.mu_x(fz_tire)  # Load dependent longitudinal friction coefficient
+            mu_lat = self.mu_y(fz_tire)  # Load dependent longitudinal friction coefficient
 
-            # Maximum braking force based on friction force available
-            f_brake_max = math.sqrt(max(0.0, f_total ** 2 - f_lateral ** 2))
+            f_lateral = (self.mass * v_next ** 2) / abs(r)  # Lateral force required to take corner at previous velocity
+            f_lateral_max = mu_lat * (self.weight + self.downforce(v_next))  # Maximum lateral force available
+
+            # Maximum braking force from friction ellipse
+            f_brake_max = ((mu_long * (self.weight + self.downforce(v_next))) *
+                          max(0, (math.sqrt(1 - min(1, (f_lateral / f_lateral_max)) ** 2))))
 
             # Deceleration from braking and drag
             a_decel = (self.drag(v_next) + f_brake_max) / self.mass
