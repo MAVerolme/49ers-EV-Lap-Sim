@@ -22,6 +22,9 @@ cl_0 = 0.0 # Starting lift coefficient
 cl_f = -3.0 # Final lift coefficient
 cl_step = -0.01 # Lift coefficient step size
 
+cd_offset = 0
+
+cl_cd_ratio = -1.5
 
 def param_sweep(track):
 
@@ -32,7 +35,7 @@ def param_sweep(track):
     results = []
 
     for cl in cl_vals:
-        cd = -1 * cl # 1:-1 Cd to Cl ratio
+        cd = (cl/cl_cd_ratio) * (cl_f/cl_cd_ratio - cd_offset)/(cl_f/cl_cd_ratio) + cd_offset # Calculate cd using cl:cd ratio
         w = w0 + weight_per_cl * (-1 * cl) # Weight increases with cl
 
         car = Car(w, cl, cd, frontal_area, track_width, wheel_radius, torque, gear_ratio)
@@ -41,7 +44,7 @@ def param_sweep(track):
         skidpad = car.cornering_time(skidpad_radius, skidpad_angle)
 
         results.append([cl, cd, w, endurance_lap, skidpad])
-        print(f"CL = {cl:.2f} | CD = {cd:.2f} | Weight = {w:.3f} lbs | Lap Time = {endurance_lap:.3f} s | Skidpad Time = {skidpad:.3f} s")
+        print(f"CL = {cl:.3f} | CD = {cd:.3f} | Weight = {w:.3f} lbs | Lap Time = {endurance_lap:.3f} s | Skidpad Time = {skidpad:.3f} s")
 
     return results
 
