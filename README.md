@@ -106,21 +106,29 @@ Once you have configured the parameters, press the 'Compute' button at the botto
 <br />
 
 The only parameters that are not currently editable in the app interface are the following:
-- PDY1 &mdash; This is the nominal lateral friction, Mu_y
-- PDY2 &mdash; This is the variation of friction, Mu_y, with load
-- FZ0 &mdash; This is the nominal tire load used in generating a tire model
+- PDY1 &mdash; The nominal lateral friction, Mu_y
+- PDY2 &mdash; The variation of lateral friction, Mu_y, with load
+- PDY3 &mdash; The variation of lateral friction, Mu_y, with camber squared
+- FZ0_y &mdash; The nominal tire load used in generating a tire model of the cornering (lateral) behavior
+
+- PDX1 &mdash; The nominal longitudinal friction, Mu_x
+- PDX2 &mdash; The variation of longitudinal friction, Mu_x, with load
+- PDX3 &mdash; The variation of longitudinal friction, Mu_x, with camber squared
+- FZ0_x &mdash; This is the nominal tire load used in generating a tire model of the drive/brake (longitudinal) behavior
+  
 - Scaling factor &mdash; This is rough estimate of the factor at which the track surface Mu_y varies from the ideal tire test conditions
 
 If you wish to change any of these values, they must be edited in the code directly. They can be found in the Car class setup:
 <br />
 <br />
 <br />
-<img width="732" height="110" alt="image" src="https://github.com/user-attachments/assets/6bb694c7-25b9-4369-bed6-cbfff995a917" />
+<img width="823" height="243" alt="image" src="https://github.com/user-attachments/assets/c05ed9af-9e9b-4326-989e-db244afd1ddf" />
+
 <br />
 <br />
 <br />
 
-If you wish to simulate a different tire (currently using Hoosier 18x6 on 7 inch rims at 12 psi), you can find them by generating a tire model, or looking at the parameters in an existing tire model file.
+If you wish to simulate a different tire (currently using Hoosier 16x6 on 7 inch rims at 12 psi), you can find them by generating a tire model, or looking at the parameters in an existing tire model file.
 
 
 
