@@ -205,7 +205,7 @@ class Car:
 
     # Determines velocity limit at each interval across an entire lap
     # This is the main function used for estimating lap times for a given track
-        def velocity_profile(self, rows):
+    def velocity_profile(self, rows):
 
         n = len(rows)
         row_spacing = rows[1][1] - rows[0][1]   # Feet covered between each interval in track file
