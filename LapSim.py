@@ -27,6 +27,7 @@ track_width = 49.5          # Trackwidth, inches
 c_lift = 0.264              # Coefficient of lift
 c_drag = 0.585              # Coefficient of drag
 frontal_area = 7.9          # Frontal area, ft^2
+n_powertrain = 0.92         # Powertrain efficiency
 torque = 112                # Motor torque, N * m
 gear_ratio = 3.45           # Gear ratio
 wheel_radius = 8            # Wheel radius, in
@@ -35,6 +36,7 @@ g = 32.17405                # Gravity, ft/s^2
 rho = 0.002282              # Air Density, slug/ft^3
 in_to_ft = 1/12             # Inch to feet conversion
 nm_to_ftlb = 0.73756        # Newton-meter to Foot-lb conversion
+ftlbfs_to_kw = 0.0013558179 # Foot-pound per second to kW conversion
 
 skidpad_radius = 30         # Skidpad Radius, ft
 skidpad_angle = 360         # Skidpad turn angle, degrees
@@ -111,6 +113,8 @@ class Car:
         self.wheel_radius = wr * in_to_ft
         self.torque = tq * nm_to_ftlb
         self.gear_ratio = gr
+        self.efficiency = n_powertrain
+
 
         # Tire coefficients/parameters for Hoosier 16x6-7 at 12 psi:
 
@@ -309,6 +313,38 @@ class Car:
         # Returns lowest velocity from cornering, accel, and decel calculations
         return [min(v_max[i], extended_v_accel[i], v_decel[i]) for i in range(n)]
 
+    # Calculates power and energy usage throughout a lap
+    def power_profile(self,rows):
+        n = len(rows)
+        v_actual = self.velocity_profile(rows)
+
+        distances = []
+        for row in rows:
+            distances.append(row[1])
+
+        row_spacing = distances[1] - distances[0]  # Distance step between rows
+        lap_length = distances[-1] + row_spacing  # Total lap length
+        distances_loop = distances + [
+            lap_length]  # Adds distance of interval connecting last point to first point to close the loop
+
+        # Adds velocity connecting last point to first. Sets velocity at end of lap to velocity at start of lap
+        v_loop = v_actual + [v_actual[0]]
+
+        power = []    # List of power required at each point
+        energy = 0.0  # Cumulative energy usage
+
+        for i in range(n):
+            ds = distances_loop[i + 1] - distances_loop[i]    
+            v_avg = (v_loop[i + 1] + v_loop[i]) / 2                     # Averages velocity between each point and the next
+            a_x = (v_loop[i+1] ** 2 - v_loop[i] ** 2) / (2 * ds)        # Longitudinal acceleration at each point
+
+            f_x = self.mass * a_x + self.drag(v_avg)                    # Longitudinal force requirement, accounting for drag
+            p = max(0, (f_x * v_avg / self.efficiency) * ftlbfs_to_kw)  # Power required; ignores if value is negative (braking)
+
+            power.append(p)
+            energy += (p * ds / v_avg) / 3600                           # Accumulates energy over the course of a lap
+        return power, energy
+        
     def lap_time(self, rows):
 
         t = 0.0    # Starting time
@@ -452,6 +488,20 @@ class LapSimApp(tk.Tk):
         ttk.Label(results_frame, textvariable=self.accel_time, style='Result.TLabel').grid(row=4, column=1, sticky='e',pady=10)
         self.event_times['accel'] = self.accel_time
 
+        ttk.Label(results_frame, text='Maximum Power:', style='TLabel').grid(row=5, column=0, sticky='w', padx=5, pady=10)
+        self.max_p = tk.StringVar(value=str('--'))
+        ttk.Label(results_frame, textvariable=self.max_p, style='Result.TLabel').grid(row=5, column=1, sticky='e',pady=10)
+        self.event_times['max_power'] = self.max_p
+
+        ttk.Label(results_frame, text='Energy (1 lap):', style='TLabel').grid(row=6, column=0, sticky='w', padx=5, pady=10)
+        self.lap_energy = tk.StringVar(value=str('--'))
+        ttk.Label(results_frame, textvariable=self.lap_energy, style='Result.TLabel').grid(row=6, column=1, sticky='e',pady=10)
+        self.event_times['energy_lap'] = self.lap_energy
+
+        ttk.Label(results_frame, text='Energy (Endurance):', style='TLabel').grid(row=7, column=0, sticky='w', padx=5, pady=10)
+        self.endurance_energy = tk.StringVar(value=str('--'))
+        ttk.Label(results_frame, textvariable=self.endurance_energy, style='Result.TLabel').grid(row=7, column=1, sticky='e',pady=10)
+        self.event_times['energy_endurance'] = self.endurance_energy
 
     def update_params(self):
 
@@ -499,12 +549,21 @@ class LapSimApp(tk.Tk):
         skidpad = car.cornering_time(skidpad_radius, skidpad_angle)
         accel = car.straight_time(0, -1, accel_distance)
 
+        # Calculate power and energy usage
+        power, energy_lap = car.power_profile(self.track)
+        energy_endurance = energy_lap * lap_count
+        max_power = max(power)
+
         # Changes text value of result widgets to display updated times
         self.event_times['endurance_lap'].set(f'{endurance_lap:.3f} s')
         self.event_times['endurance_total'].set(seconds_to_ms(endurance_total))
         self.event_times['skidpad'].set(f'{skidpad:.3f} s')
         self.event_times['accel'].set(f'{accel:.3f} s')
 
+        self.event_times['max_power'].set(f'{max_power:.3f} kW')
+        self.event_times['energy_lap'].set(f'{energy_lap:.3f} kWh')
+        self.event_times['energy_endurance'].set(f'{energy_endurance:.2f} kWh')
+        
 if __name__ == "__main__":
         picker_root = tk.Tk()
         picker = FilePicker(picker_root)
