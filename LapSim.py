@@ -371,7 +371,7 @@ class Car:
         lap_count = 72178.5 / lap_length    # Estimates number of laps needed to complete full endurance distance (22km)
         total_time = t * lap_count          # Scales single lap time over entire endurance distance
 
-        return t, total_time
+        return t, total_time, lap_count
 
 
 #---------- GUI Setup ----------
@@ -545,7 +545,7 @@ class LapSimApp(tk.Tk):
         car = Car( up['weight'], up['c_lift'], up['c_drag'], up['frontal_area'], up['track_width'], up['wheel_radius'], up['torque'], up['gear_ratio'])
 
         # Calculate event times using new parameters
-        endurance_lap, endurance_total = car.lap_time(self.track)
+        endurance_lap, endurance_total, lap_count = car.lap_time(self.track)
         skidpad = car.cornering_time(skidpad_radius, skidpad_angle)
         accel = car.straight_time(0, -1, accel_distance)
 
